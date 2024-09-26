@@ -1,0 +1,11 @@
+numpy==2.1.1
+pandas==2.2.3
+protobuf==5.28.2
+PyMySQL==1.1.1
+python-dotenv==1.0.1
+Requests==2.32.3
+scikit_learn==1.5.2
+SQLAlchemy==2.0.34
+statsmodels==0.14.2
+torch==2.4.1+cu124
+ulmo==0.8.8
