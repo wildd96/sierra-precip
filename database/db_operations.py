@@ -44,6 +44,9 @@ class Database:
         query = f"SELECT * FROM {table_name}"
         return self.execute_query(query)
 
+    def query(self, query):
+        return self.execute_query(query)
+
     def close(self):
         if self.engine:
             self.engine.dispose()

@@ -1,15 +1,23 @@
 import os, sys
 import pandas as pd
 import numpy as np
+import dotenv
 from statsmodels.tsa.seasonal import seasonal_decompose
+import jax.numpy as jnp
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
+
 from database import db_operations
+
+dotenv.load_dotenv(os.path.join(parent_dir, '.env'))
+
 
 
 #TODO: THE RETURNED DATATYPE IS BEING MIXED AROUND, DETERMINE WHAT DATATYPE I WANT IT TO END AS AND ENFORCE IT WITH ->
+
+
 
 class DataProcessed:
     def __init__(self):
@@ -17,9 +25,8 @@ class DataProcessed:
         self.shift_dict = {}
         self.y = None
         self.X = None
-    
-    def pull(self):
-        data_retrieval = db_operations.Database(
+        self.dates = None
+        self.db = db_operations.Database(
             project_id=os.getenv("PROJECT_ID"),
             region=os.getenv("REGION"),
             instance_name=os.getenv("INSTANCE_NAME"),
@@ -28,16 +35,19 @@ class DataProcessed:
             db_name=os.getenv("DB_NAME")
         )
 
-        snotel = pd.DataFrame(data_retrieval.pull_table("ao_pdo_enso.mytable"))
-        #snotel = snotel.resample('MS', on='DATE').mean() 
-        snotel = snotel.reset_index()
-        snotel['DATE'] = pd.to_datetime(snotel['DATE']).dt.date
-        
-        climate_indices = pd.DataFrame(data_retrieval.pull_table("ao_pdo_enso.climate_indices")).replace(-9999, np.nan)
-        climate_indices['DATE']=pd.to_datetime(climate_indices['DATE']).dt.date
+    
+    def pull(self):
 
-        self.data = climate_indices.merge(snotel).iloc[:, 1:]
-        self.data = self.data.drop(columns=['index', 'FIELD1'])
+        self.y = self.db.pull_table("ao_pdo_enso.mytable")
+
+        # self.dates = self.y[:, 1]
+        # self.y = self.y[:, 1:]
+        
+        self.X = self.db.pull_table("ao_pdo_enso.climate_indices")
+        #climate_indices['DATE']=pd.to_datetime(climate_indices['DATE']).dt.date
+
+        # self.data = climate_indices.merge(snotel).iloc[:, 1:]
+        # self.data = self.data.drop(columns=['index', 'FIELD1'])
         
         return None
     
@@ -111,3 +121,10 @@ class DataProcessed:
 
         
         return None
+
+
+if __name__ == "__main__":
+    x = DataProcessed()
+    x.pull()
+    for line in x.y:
+        print(line[2:])
