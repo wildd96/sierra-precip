@@ -25,7 +25,8 @@ class DataProcessed:
         self.shift_dict = {}
         self.y = None
         self.X = None
-        self.dates = None
+        self.ydates = None
+        self.Xdates = None
         self.db = db_operations.Database(
             project_id=os.getenv("PROJECT_ID"),
             region=os.getenv("REGION"),
@@ -39,16 +40,18 @@ class DataProcessed:
     def pull(self):
 
         self.y = self.db.pull_table("ao_pdo_enso.mytable")
-
-        # self.dates = self.y[:, 1]
-        # self.y = self.y[:, 1:]
-        
+        self.y = np.array([line[1:] for line in self.y])
+        self.ydates = np.array([line[0] for line in self.y])
+                
         self.X = self.db.pull_table("ao_pdo_enso.climate_indices")
+        self.X = np.array([line[1:] for line in self.X])
+        self.Xdates = np.array([line[0] for line in self.X])
+
         #climate_indices['DATE']=pd.to_datetime(climate_indices['DATE']).dt.date
 
         # self.data = climate_indices.merge(snotel).iloc[:, 1:]
         # self.data = self.data.drop(columns=['index', 'FIELD1'])
-        
+
         return None
     
     def auto_corr(self, target, feature, steps = 36):
@@ -126,5 +129,4 @@ class DataProcessed:
 if __name__ == "__main__":
     x = DataProcessed()
     x.pull()
-    for line in x.y:
-        print(line[2:])
+    print(x.y)
