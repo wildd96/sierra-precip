@@ -11,6 +11,8 @@ sys.path.append(parent_dir)
 
 from database import db_operations
 
+from datetime import datetime
+
 dotenv.load_dotenv(os.path.join(parent_dir, '.env'))
 
 
@@ -36,21 +38,22 @@ class DataProcessed:
             db_name=os.getenv("DB_NAME")
         )
 
+    @staticmethod
+    def date_to_unix(date_array):
+        timestamps = np.array([int(datetime.fromisoformat(date_string.rstrip('Z')).timestamp()) for date_string in date_array])
+        return timestamps
     
     def pull(self):
 
-        self.y = self.db.pull_table("ao_pdo_enso.mytable")
-        self.y = np.array([line[1:] for line in self.y])
-        self.ydates = np.array([line[0] for line in self.y])
+        y = self.db.pull_table("ao_pdo_enso.mytable")
+        self.y = np.array([line[2:] for line in y], dtype=np.float32)
+        #self.ydates = np.array([line[1] for line in y])
+        self.ydates = self.date_to_unix([line[1] for line in y])
                 
-        self.X = self.db.pull_table("ao_pdo_enso.climate_indices")
-        self.X = np.array([line[1:] for line in self.X])
-        self.Xdates = np.array([line[0] for line in self.X])
-
-        #climate_indices['DATE']=pd.to_datetime(climate_indices['DATE']).dt.date
-
-        # self.data = climate_indices.merge(snotel).iloc[:, 1:]
-        # self.data = self.data.drop(columns=['index', 'FIELD1'])
+        x = self.db.pull_table("ao_pdo_enso.climate_indices")
+        self.X = np.array([line[1:] for line in x], dtype=np.float32)
+        #self.Xdates = np.array([line[0] for line in x])
+        self.Xdates = self.date_to_unix([line[0].strftime('%Y-%m-%d 00:00:00+00:00') for line in x])
 
         return None
     
@@ -129,4 +132,5 @@ class DataProcessed:
 if __name__ == "__main__":
     x = DataProcessed()
     x.pull()
-    print(x.y)
+    print(x.Xdates[-10:])
+    print(x.ydates[-10:])
