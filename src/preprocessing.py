@@ -63,7 +63,9 @@ class DataProcessed:
         x1 = np.r_[np.full((36,34), np.nan), self.y]
         self.data = np.c_[self.X, x1]
         return None
-    
+    def pull_table(self, table):
+        return self.db.pull_table(table)
+        
     def auto_corr(self, target, feature, steps = 36):
         df = self.data[[target, feature]].copy()
         corrs = []
